@@ -105,9 +105,23 @@
           else
             echo "✅ All packages green. Safe to update!"
             echo "🚀 Running update..."
-            sudo nix-channel --update && \
-            sudo nixos-rebuild switch --upgrade && \
-            home-manager switch
+
+            # AUTOMATED ENGINE DETECTION: Checks if the host is a pure Flake system or traditional channel system
+            if [ -f /etc/nixos/flake.nix ]; then
+              echo "❄️ Pure Flake environment detected at /etc/nixos/flake.nix"
+              sudo nix flake update --flake /etc/nixos && \
+              sudo nixos-rebuild switch --flake /etc/nixos && \
+              home-manager switch
+            elif [ -f ~/.config/nix/flake.nix ]; then
+              echo "❄️ Pure Flake environment detected at ~/.config/nix/"
+              sudo nixos-rebuild switch --flake ~/.config/nix/ && \
+              home-manager switch
+            else
+              echo "📦 Traditional NixOS channel system detected."
+              sudo nix-channel --update && \
+              sudo nixos-rebuild switch --upgrade && \
+              home-manager switch
+            fi
           fi
         '';
       in
