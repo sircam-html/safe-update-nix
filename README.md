@@ -1,18 +1,43 @@
 # 🛡️ Hydra Pre-Update Verifier (`safe-update`)
 
-An automated pre-flight update shield for NixOS and Home Manager. It instantly scans your installed software profiles against upstream **Hydra build servers** in milliseconds and aborts your upgrade sequence if any package is currently broken or unbuilt upstream.
+A high-performance, fully universal update shield for NixOS and Home Manager. This script dynamically audits your installed software profiles, auto-detects your environment's active release track, cross-references it with upstream **Hydra build servers**, and aborts your upgrade sequence if any critical package update is broken or unbuilt upstream.
+
+## 🚀 Key Features & Architectural Enhancements
+
+*   **🌍 Universal Channel Engine:** Auto-detects your runtime host machine version via `/run/current-system/nixos-version` (works out of the box on stable channels like `25.11`, `26.05`, or rolling `unstable` paths).
+*   **⚡ Instant Profile Auditing (\(O(1)\) Complexity):** Replaced slow, global network tree evaluations (`nix-env -qaP`) with localized link-parsing directly from `/run/current-system/sw`. Profile fetching takes milliseconds instead of minutes.
+*   **🔮 Dynamic Unfree Detection:** Completely autonomous. The script leverages `nix-instantiate` to evaluate your configuration's `allowUnfreePredicate` in real-time, instantly skipping pre-built binaries without requiring manual list editing.
+*   **🫧 Zero False Positives:** Built-in RegEx filters purge internal environment shell noise (such as Fish shell's `hm-session-vars.fish`, `safe-update`, and manual page structures) to ensure only valid user-facing applications are queried.
+
+---
+
+## 🛠️ How It Works Under the Hood
+
+```text
+STEP 1: [Local Audit]
+        └──> Dynamically extracts all system packages & Home Manager profiles.
+
+STEP 2: [Dynamic Sync]
+        └──> Auto-detects host release version and syncs active allowed unfree apps.
+
+STEP 3: [Hydra Query]
+        └──> Checks status for ALL your unique packages on your runtime channel.
+             │
+             ├──> [❌ FAILED] ──> Abort Update! (Protects system state)
+             └──> [✅ GREEN]  ──> Running update... (Executes Upgrade Sequence)
+```
 
 ---
 
 ## 🚀 Instant Usage
 
-No configuration editing required. Run this portable command directly in your terminal to safely update your system:
+No configuration editing or `home.nix` rewriting required. Run this portable command directly in your terminal to safely check and upgrade your system:
 
 ```fish
 nix run github:sircam-html/safe-update-nix
 ```
 
-*This command dynamically pulls the verification shield, checks your unique System + Home Manager packages, and safely fires your upgrade sequence if all indicators report green.*
+*This command dynamically streams the verification shield, adapts its engine to target your local channel track, checks your unique packages, and triggers your upgrade sequence if all indicators report green.*
 
 ---
 
@@ -39,5 +64,5 @@ nix-store --optimise
 
 ## 🏆 Core Advantages
 * **Immune System:** Never download a broken rolling package update again.
-* **Zero Maintenance:** Automatically reads your allowed unfree packages in real-time.
+* **Zero Maintenance:** Adapts automatically whenever you add, change, or remove software profiles.
 * **Permissive License:** Open-source architecture distributed under the **MIT License**.
