@@ -14,7 +14,22 @@
         safeUpdateScript = pkgs.writeShellScriptBin "safe-update" ''
           #!/usr/bin/env bash
           set -o pipefail
-          CHANNEL="26.05"
+
+          # DYNAMIC CHANNEL DETECTION: Automatically reads the host machine's runtime version track
+          if [ -f /run/current-system/nixos-version ]; then
+            # Extracts major.minor (e.g., "25.11" or "26.05") from the official system descriptor file
+            CHANNEL=$(cut -d. -f1,2 /run/current-system/nixos-version)
+          elif nix-channel --list | grep -q "nixos-"; then
+            # Fallback: Parses the version string from active environment nix-channel lists
+            CHANNEL=$(nix-channel --list | grep "nixos-" | head -n1 | awk '{print $2}' | sed -E 's/.*nixos-//')
+          else
+            # Default safety net
+            CHANNEL="26.05"
+          fi
+
+          # Force "unstable" tracking if the target host machine is running a development branch
+          [[ "$CHANNEL" == *"pre"* || "$CHANNEL" == *"unstable"* ]] && CHANNEL="unstable"
+
           FAILED=0
 
           echo "🔍 Dynamic lookup: Extracting allowed unfree packages from your Nix config..."
