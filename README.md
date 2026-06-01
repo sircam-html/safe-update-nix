@@ -6,7 +6,7 @@ A high-performance, fully universal update shield for NixOS and Home Manager. Th
 
 *   **🌍 Universal Channel Engine:** Auto-detects your runtime host machine version via `/run/current-system/nixos-version` (works out of the box on stable channels like `25.11`, `26.05`, or rolling `unstable` paths).
 *   **⚡ Instant Profile Auditing (\(O(1)\) Complexity):** Replaced slow, global network tree evaluations (`nix-env -qaP`) with localized link-parsing directly from `/run/current-system/sw`. Profile fetching takes milliseconds instead of minutes.
-*   **🔮 Dynamic Unfree Detection:** Completely autonomous. The script leverages `nix-instantiate` to evaluate your configuration's `allowUnfreePredicate` in real-time, instantly skipping pre-built binaries without requiring manual list editing.
+*   **🔮 Dynamic Unfree Detection:** Completely autonomous. The script leverages `nix-instantiate` to evaluate your configuration's `allowUnfreePredicate` in real-time, adapting instantly when you add or remove unfree software.
 *   **🫧 Zero False Positives:** Built-in RegEx filters purge internal environment shell noise (such as Fish shell's `hm-session-vars.fish`, `safe-update`, and manual page structures) to ensure only valid user-facing applications are queried.
 
 ---
@@ -38,6 +38,12 @@ nix run github:sircam-html/safe-update-nix
 ```
 
 *This command dynamically streams the verification shield, adapts its engine to target your local channel track, checks your unique packages, and triggers your upgrade sequence if all indicators report green.*
+
+### 💡 Advanced: Force Local Cache Override
+To bypass downloading an independent tracking copy of Nixpkgs and force the script to use your host machine's already-cached system inputs (saving major network bandwidth), append the override flag:
+```fish
+nix run github:sircam-html/safe-update-nix --override-input nixpkgs nixpkgs
+```
 
 ---
 
