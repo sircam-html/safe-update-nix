@@ -51,15 +51,30 @@ nix run github:sircam-html/safe-update-nix --override-input nixpkgs nixpkgs
 
 If you don't want to type long GitHub strings or manage custom dotfile aliases, you can instantly turn `safe-update` into a permanent, native system command. 
 
-Open your terminal (compatible with Bash, Zsh, or Fish) and run this single command to create a global launcher script:
+### Step 1: Create the launcher script
+Open your terminal and run this single line to drop the portable script directly into your safe user binary space:
 
 ```bash
-sudo sh -c 'echo "exec nix run github:sircam-html/safe-update-nix --refresh \"\$@\"" > /usr/local/bin/safe-update && chmod +x /usr/local/bin/safe-update'
+mkdir -p ~/.local/bin && echo 'exec nix run github:sircam-html/safe-update-nix --refresh "\$@"' > ~/.local/bin/safe-update && chmod +x ~/.local/bin/safe-update
 ```
 
-*(Note: Under the hood, this one-liner drops a lightweight launcher script directly into `/usr/local/bin/`. Because it calls the transient Flake framework with the `--refresh` parameter, your system will automatically pull and execute the absolute latest up-to-date repository code from GitHub every single time you type the command, requiring zero manual update maintenance from you!)*
+### Step 2: Ensure the path is visible to your Shell
+If your terminal reports `command not found`, your shell simply needs to register your local bin path. Run the command that matches your active shell, then restart your terminal (`exec fish` or `exec zsh`):
 
-Once executed, you can clear your console cache and fire up your entire live defensive shield from anywhere on your system by typing a single word:
+* **If you use Fish shell:**
+  ```fish
+  fish_add_path ~/.local/bin/
+  ```
+* **If you use Zsh shell:**
+  ```zsh
+  echo 'export PATH="\(HOME/.local/bin:\)PATH"' >> ~/.zshrc
+  ```
+* **If you use Bash shell:**
+  ```bash
+  echo 'export PATH="\(HOME/.local/bin:\)PATH"' >> ~/.bashrc
+  ```
+
+Once executed, you can fire up your entire live defensive shield from anywhere on your system by typing a single word:
 
 ```fish
 safe-update
