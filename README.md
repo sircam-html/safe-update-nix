@@ -47,6 +47,26 @@ nix run github:sircam-html/safe-update-nix --override-input nixpkgs nixpkgs
 
 ---
 
+## ⚡ One-Word Global Installation (Any Shell)
+
+If you don't want to type long GitHub strings or manage custom dotfile aliases, you can instantly turn `safe-update` into a permanent, native system command. 
+
+Open your terminal (compatible with Bash, Zsh, or Fish) and run this single command to create a global launcher script:
+
+```bash
+sudo sh -c 'echo "exec nix run github:sircam-html/safe-update-nix --refresh \"\$@\"" > /usr/local/bin/safe-update && chmod +x /usr/local/bin/safe-update'
+```
+
+*(Note: Under the hood, this one-liner drops a lightweight launcher script directly into `/usr/local/bin/`. Because it calls the transient Flake framework with the `--refresh` parameter, your system will automatically pull and execute the absolute latest up-to-date repository code from GitHub every single time you type the command, requiring zero manual update maintenance from you!)*
+
+Once executed, you can clear your console cache and fire up your entire live defensive shield from anywhere on your system by typing a single word:
+
+```fish
+safe-update
+```
+
+---
+
 ## 📋 Recommended Deep Cleaning Routine
 
 Run these raw sequential commands 24–48 hours after your monthly upgrade to completely delete old system generations and optimize your storage space:
