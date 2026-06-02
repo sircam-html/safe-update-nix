@@ -4,10 +4,22 @@ A high-performance, fully universal update shield for NixOS and Home Manager. Th
 
 ## 🚀 Key Features & Architectural Enhancements
 
-*   **🌍 Universal Channel Engine:** Auto-detects your runtime host machine version via `/run/current-system/nixos-version` (works out of the box on stable channels like `25.11`, `26.05`, or rolling `unstable` paths).
-*   **⚡ Instant Profile Auditing (\(O(1)\) Complexity):** Replaced slow, global network tree evaluations (`nix-env -qaP`) with localized link-parsing directly from `/run/current-system/sw`. Profile fetching takes milliseconds instead of minutes.
-*   **🔮 Dynamic Unfree Detection:** Completely autonomous. The script leverages `nix-instantiate` to evaluate your configuration's `allowUnfreePredicate` in real-time, adapting instantly when you add or remove unfree software.
-*   **🫧 Zero False Positives:** Built-in RegEx filters purge internal environment shell noise (such as Fish shell's `hm-session-vars.fish`, `safe-update`, and manual page structures) to ensure only valid user-facing applications are queried.
+*   **🌍 Universal Channel & Flake Engine:** Auto-detects your runtime host machine version via `/run/current-system/nixos-version`.
+    *   Works out of the box on stable release tracks (`25.11`, `26.05`) and rolling `unstable` paths.
+    *   Dynamically pivots its deployment engine to natively support modern, pure Flake-driven profiles.
+
+*   **⚡ Instant Profile Auditing ($O(1)$ Complexity):** Swaps heavy network overhead for ultra-fast local parsing.
+    *   Replaced slow, global network tree evaluations (`nix-env -qaP`) with localized link-parsing from `/run/current-system/sw`.
+    *   Reduces profile evaluation and user-package mapping times down to milliseconds instead of minutes.
+
+*   **🔮 Dynamic Unfree Detection:** Completely autonomous environment syncing.
+    *   Leverages `nix-instantiate` to evaluate your live `allowUnfreePredicate` block in real-time.
+    *   Adapts instantly as you scale your software suite without requiring manually maintained exception lists.
+
+*   **🫧 Zero False Positives:** Immaculate terminal visualization output grids.
+    *   Built-in RegEx engine filters out internal declarative environmental noise and shell metadata variables.
+    *   Purges rows like `hm-session-vars.fish`, manual pages, and `safe-update` to query only true applications.
+
 
 ---
 
