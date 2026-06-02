@@ -114,6 +114,7 @@
               home-manager switch
             elif [ -f ~/.config/nix/flake.nix ]; then
               echo "❄️ Pure Flake environment detected at ~/.config/nix/"
+              sudo nix flake update --flake ~/.config/nix && \
               sudo nixos-rebuild switch --flake ~/.config/nix/ && \
               home-manager switch
             elif [ -f ~/nixos/flake.nix ]; then
