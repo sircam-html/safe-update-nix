@@ -121,6 +121,11 @@
               sudo nix flake update --flake ~/nixos && \
               sudo nixos-rebuild switch --flake ~/nixos && \
               home-manager switch
+            elif [ -f ~/.dotfiles/flake.nix ]; then
+              echo "❄️ Pure Flake environment detected at ~/.dotfiles/"
+              sudo nix flake update --flake ~/.dotfiles && \
+              sudo nixos-rebuild switch --flake ~/.dotfiles && \
+              home-manager switch
             else
               echo "📦 Traditional NixOS channel system detected."
               sudo nix-channel --update && \
