@@ -116,6 +116,11 @@
               echo "❄️ Pure Flake environment detected at ~/.config/nix/"
               sudo nixos-rebuild switch --flake ~/.config/nix/ && \
               home-manager switch
+            elif [ -f ~/nixos/flake.nix ]; then
+              echo "❄️ Pure Flake environment detected at ~/nixos/"
+              sudo nix flake update --flake ~/nixos && \
+              sudo nixos-rebuild switch --flake ~/nixos && \
+              home-manager switch
             else
               echo "📦 Traditional NixOS channel system detected."
               sudo nix-channel --update && \
