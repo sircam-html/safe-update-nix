@@ -11,30 +11,28 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
-        # Bakes a secure wrapper that contains hydra-check right inside its execution path
         safeUpdateScript = pkgs.writeShellScriptBin "safe-update" ''
           #!/usr/bin/env bash
           set -euo pipefail
 
-          # 1. Gracefully guarantee hydra-check is present at runtime (Fixes Point #3)
           export PATH="${pkgs.hydra-check}/bin:${pkgs.gawk}/bin:$PATH"
 
           echo "🛡️ Starting pre-flight update validation tracks..."
 
-          # 2. Extract active system channels safely using robust awk tracking (Fixes Point #5)
-          CURRENT_CHANNEL=$(nix-channel --list | grep nixos | awk -F'/' '{print $NF}' || echo "nixos-unstable")
+          # Fixed: Extracts the active system channel name cleanly via awk
+          CURRENT_CHANNEL=$(nix-channel --list | grep nixos | awk -F'/' '{print $NF}' || echo "nixos-26.05")
 
-          # 3. Handle unstable channel drift gracefully (Fixes Point #4)
-          if [[ "$CURRENT_CHANNEL" == "nixos" ]]; then
+          # Fixed (Point #4): Dynamically extracts version or defaults to your true stable release (26.05)
+          if [[ "$CURRENT_CHANNEL" == "nixos" || "$CURRENT_CHANNEL" == "nixos-unstable" ]]; then
               CHANNEL_VER="unstable"
           else
               CHANNEL_VER=$(echo "$CURRENT_CHANNEL" | sed -E 's/.*nixos-//')
+              # Emergency safety fallback if string extraction drifts
+              if [[ -z "$CHANNEL_VER" ]]; then CHANNEL_VER="26.05"; fi
           fi
 
-          echo "📡 Active System Target Track: $CURRENT_CHANNEL ($CHANNEL_VER)"
+          echo "📡 Active System Target Track: $CURRENT_CHANNEL (Hydra Target: $CHANNEL_VER)"
 
-          # 4. Correctly filter unfree system packages via a safe array list (Fixes Point #1 & #2)
-          # Since Nix evaluates functions opaquely, this explicit list matches your core profile
           UNFREE_PACKAGES=("google-chrome" "discord" "ferdium" "steam" "wine")
 
           echo "🔍 Auditing Hydra build status matrices for unfree channels..."
