@@ -22,6 +22,24 @@ A high-performance, fully universal update shield for NixOS, Home Manager, and p
 
 ---
 
+## 🚀 Instant Usage
+
+No configuration editing or `home.nix` rewriting required. Run this portable command directly in your terminal to safely check and upgrade your system:
+
+```fish
+nix run github:sircam-html/safe-update-nix
+```
+
+*This command dynamically streams the verification shield, adapts its engine to target your local channel track, checks your unique packages, and triggers your upgrade sequence if all indicators report green.*
+
+### 💡 Advanced: Force Local Cache Override
+To bypass downloading an independent tracking copy of Nixpkgs and force the script to use your host machine's already-cached system inputs (saving major network bandwidth), append the override flag:
+```fish
+nix run github:sircam-html/safe-update-nix --override-input nixpkgs nixpkgs
+``` 
+    
+---
+
 ## 🏆 Core Advantages
 * **Immune System:** Never download a broken rolling package update again.
 * **Zero Maintenance:** Adapts automatically whenever you add, change, or remove software profiles.
@@ -43,24 +61,6 @@ STEP 3: [Hydra Query]
              │
              ├──> [❌ FAILED] ──> Abort Update! (Protects system state)
              └──> [✅ GREEN]  ──> Running update... (Executes Upgrade Sequence)
-```
-
----
-
-## 🚀 Instant Usage
-
-No configuration editing or `home.nix` rewriting required. Run this portable command directly in your terminal to safely check and upgrade your system:
-
-```fish
-nix run github:sircam-html/safe-update-nix
-```
-
-*This command dynamically streams the verification shield, adapts its engine to target your local channel track, checks your unique packages, and triggers your upgrade sequence if all indicators report green.*
-
-### 💡 Advanced: Force Local Cache Override
-To bypass downloading an independent tracking copy of Nixpkgs and force the script to use your host machine's already-cached system inputs (saving major network bandwidth), append the override flag:
-```fish
-nix run github:sircam-html/safe-update-nix --override-input nixpkgs nixpkgs
 ```
 
 ---
