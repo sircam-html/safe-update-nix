@@ -10,9 +10,8 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-      in
-      {
-        packages.default = pkgs.writeShellScriptBin "safe-update" ''
+
+        safeUpdateScript = pkgs.writeShellScriptBin "safe-update" ''
           #!/usr/bin/env bash
           set -euo pipefail
 
