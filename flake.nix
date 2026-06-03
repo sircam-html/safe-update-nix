@@ -18,8 +18,18 @@
           export PATH="${pkgs.hydra-check}/bin:${pkgs.gawk}/bin:$PATH"
 
           echo "🛡️ Starting pre-flight update validation tracks..."
+
+          # Extracts your active channel or falls back to your formal channel name layout
           CURRENT_CHANNEL=$(nix-channel --list | grep nixos | awk -F'/' '{print $NF}' || echo "nixos-26.05")
-          echo "📡 Active System Target Track: $CURRENT_CHANNEL"
+
+          # Fixes the Hydra API call by passing the complete, formal stable channel string
+          if [[ "$CURRENT_CHANNEL" == "nixos" || "$CURRENT_CHANNEL" == "nixos-unstable" ]]; then
+              CHANNEL_VER="unstable"
+          else
+              CHANNEL_VER="$CURRENT_CHANNEL"
+          fi
+
+          echo "📡 Active System Target Track: $CURRENT_CHANNEL (Hydra Target: $CHANNEL_VER)"
 
           UNFREE_PACKAGES=("google-chrome" "discord" "ferdium" "steam" "wine")
 
@@ -27,19 +37,12 @@
           FAILED_BUILDS=0
 
           for pkg in "''${UNFREE_PACKAGES[@]}"; do
-              echo "⚙️ Evaluating: $pkg..."
-
-              if ! hydra-check "$pkg" --channel "$CURRENT_CHANNEL" > /dev/null 2>&1; then
-                  echo "🔄 Stable mirror indexing (404/Pending); falling back to upstream unstable check for $pkg..."
-
-                  if ! hydra-check "$pkg" --channel "nixpkgs-unstable" > /dev/null 2>&1; then
-                      echo "❌ WARNING: $pkg build is currently broken or pending on upstream master Hydra!"
-                      FAILED_BUILDS=$((FAILED_BUILDS + 1))
-                  else
-                      echo "✅ Pass: $pkg binary verified healthy on upstream master branch."
-                  fi
+              echo "⚙️ Evaluating: $pkg on channel: $CHANNEL_VER..."
+              if ! hydra-check "$pkg" --channel "$CHANNEL_VER" > /dev/null 2>&1; then
+                  echo "❌ WARNING: $pkg build is currently broken or pending on upstream Hydra!"
+                  FAILED_BUILDS=$((FAILED_BUILDS + 1))
               else
-                  echo "✅ Pass: $pkg build is green on stable channel release tracks."
+                  echo "✅ Pass: $pkg build is green."
               fi
           done
 
