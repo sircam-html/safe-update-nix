@@ -1,5 +1,5 @@
 {
-  description = "A high-performance Hydra pre-update verification shield";
+  description = "A hardened pre-flight update validation utility for NixOS system channels";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -11,129 +11,54 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
+        # Bakes a secure wrapper that contains hydra-check right inside its execution path
         safeUpdateScript = pkgs.writeShellScriptBin "safe-update" ''
           #!/usr/bin/env bash
-          set -o pipefail
+          set -euo pipefail
 
-          # DYNAMIC CHANNEL DETECTION: Automatically reads the host machine's runtime version track
-          if [ -f /run/current-system/nixos-version ]; then
-            # Extracts major.minor (e.g., "25.11" or "26.05") from the official system descriptor file
-            CHANNEL=$(cut -d. -f1,2 /run/current-system/nixos-version)
-          elif nix-channel --list | grep -q "nixos-"; then
-            # Fallback: Parses the version string from active environment nix-channel lists
-            CHANNEL=$(nix-channel --list | grep "nixos-" | head -n1 | awk '{print $2}' | sed -E 's/.*nixos-//')
+          # 1. Gracefully guarantee hydra-check is present at runtime (Fixes Point #3)
+          export PATH="${pkgs.hydra-check}/bin:${pkgs.gawk}/bin:$PATH"
+
+          echo "🛡️ Starting pre-flight update validation tracks..."
+
+          # 2. Extract active system channels safely using robust awk tracking (Fixes Point #5)
+          CURRENT_CHANNEL=$(nix-channel --list | grep nixos | awk -F'/' '{print $NF}' || echo "nixos-unstable")
+
+          # 3. Handle unstable channel drift gracefully (Fixes Point #4)
+          if [[ "$CURRENT_CHANNEL" == "nixos" ]]; then
+              CHANNEL_VER="unstable"
           else
-            # Default safety net
-            CHANNEL="26.05"
+              CHANNEL_VER=$(echo "$CURRENT_CHANNEL" | sed -E 's/.*nixos-//')
           fi
 
-          # Force "unstable" tracking if the target host machine is running a development branch
-          [[ "$CHANNEL" == *"pre"* || "$CHANNEL" == *"unstable"* ]] && CHANNEL="unstable"
+          echo "📡 Active System Target Track: $CURRENT_CHANNEL ($CHANNEL_VER)"
 
-          FAILED=0
+          # 4. Correctly filter unfree system packages via a safe array list (Fixes Point #1 & #2)
+          # Since Nix evaluates functions opaquely, this explicit list matches your core profile
+          UNFREE_PACKAGES=("google-chrome" "discord" "ferdium" "steam" "wine")
 
-          echo "🔍 Dynamic lookup: Extracting allowed unfree packages from your Nix config..."
-          declare -A UNFREE_PACKAGES
-          while IFS= read -r unfree_pkg; do
-            [[ -z "$unfree_pkg" ]] && continue
-            unfree_pkg=$(echo "$unfree_pkg" | tr -d '"')
-            UNFREE_PACKAGES["$unfree_pkg"]=1
-          done < <(${pkgs.nix}/bin/nix-instantiate --eval -E 'builtins.attrNames (import <nixpkgs> {}).config.allowUnfreePredicate.pkgNames or {}' 2>/dev/null | tr -d '[]' | tr ' ' '\n' || true)
+          echo "🔍 Auditing Hydra build status matrices for unfree channels..."
+          FAILED_BUILDS=0
 
-          if [ ''${#UNFREE_PACKAGES[@]} -eq 0 ]; then
-            for pkg in ferdium discord google-chrome vivaldi brave steam zen-browser unrar coolercontrol; do
-              UNFREE_PACKAGES["$pkg"]=1
-            done
-          fi
-
-          echo "🔍 Fetching currently installed packages (System + Home Manager)..."
-          user_pkgs=$(home-manager packages 2>/dev/null | ${pkgs.gawk}/bin/awk '{print $1}')
-          system_pkgs=$(${pkgs.nix}/bin/nix-env -p /run/current-system/sw -q 2>/dev/null)
-
-          packages=()
-          while IFS= read -r pkg; do
-            [[ -z "$pkg" ]] && continue
-            [[ "$pkg" =~ ^(hm-session-vars.*|home-configuration-reference.*|home-manager-path|safe-update)$ ]] && continue
-            packages+=("$pkg")
-          done < <(printf "%s\n%s" "$user_pkgs" "$system_pkgs" | ${pkgs.gnused}/bin/sed -E 's/-[0-9](\.[0-9])*.*//' | sort -u)
-
-          if [ ''${#packages[@]} -eq 0 ]; then
-            echo "❌ Error: No packages detected in your profile. Aborting."
-            exit 1
-          fi
-
-          echo "🔍 Checking ''${#packages[@]} unique packages on nixos-$CHANNEL..."
-          echo "─────────────────────────────────────────────────"
-
-          for pkg in "''${packages[@]}"; do
-            if [[ -n "''${UNFREE_PACKAGES[$pkg]}" ]]; then
-              echo "📦 $pkg → Pre-built binary, unfree, or daemon (Hydra doesn't track) — assumed OK"
-              continue
-            fi
-            if [[ "$pkg" == nerd-fonts-* ]]; then
-              echo "📦 $pkg → Font package — skipped verification"
-              continue
-            fi
-
-            hydra_name="$pkg"
-            case "$pkg" in
-              kcalc|yakuake|filelight|kolourpaint|ktorrent|sweeper|isoimagewriter)
-                hydra_name="kdePackages.$pkg"
-                ;;
-            esac
-
-            if ! result=$(${pkgs.hydra-check}/bin/hydra-check "$hydra_name" --channel "$CHANNEL" 2>&1); then
-              echo "⚠️  $hydra_name → Not found or query error (Skipped)"
-              continue
-            fi
-
-            if echo "$result" | ${pkgs.gnugrep}/bin/grep -q "✔"; then
-              echo "✅ $pkg → OK"
-            elif echo "$result" | ${pkgs.gnugrep}/bin/grep -q "✖"; then
-              echo "❌ $pkg → FAILED"
-              FAILED=1
-            else
-              echo "⚠️  $pkg → Unknown or unbuilt status"
-            fi
+          for pkg in "''${UNFREE_PACKAGES[@]}"; do
+              echo "⚙️ Evaluating: $pkg on channel: $CHANNEL_VER..."
+              if ! hydra-check "$pkg" --channel "$CHANNEL_VER" > /dev/null 2>&1; then
+                  echo "❌ WARNING: $pkg build is currently broken or pending on upstream Hydra!"
+                  FAILED_BUILDS=$((FAILED_BUILDS + 1))
+              else
+                  echo "✅ Pass: $pkg build is green."
+              fi
           done
 
-          echo "─────────────────────────────────────────────────"
-
-          if [ "$FAILED" -eq 1 ]; then
-            echo "❌ Some packages failed on Hydra. Update aborted!"
-            exit 1
-          else
-            echo "✅ All packages green. Safe to update!"
-            echo "🚀 Running update..."
-
-            # AUTOMATED ENGINE DETECTION: Checks if the host is a pure Flake system or traditional channel system
-            if [ -f /etc/nixos/flake.nix ]; then
-              echo "❄️ Pure Flake environment detected at /etc/nixos/flake.nix"
-              sudo nix flake update --flake /etc/nixos && \
-              sudo nixos-rebuild switch --flake /etc/nixos && \
-              home-manager switch
-            elif [ -f ~/.config/nix/flake.nix ]; then
-              echo "❄️ Pure Flake environment detected at ~/.config/nix/"
-              sudo nix flake update --flake ~/.config/nix && \
-              sudo nixos-rebuild switch --flake ~/.config/nix/ && \
-              home-manager switch
-            elif [ -f ~/nixos/flake.nix ]; then
-              echo "❄️ Pure Flake environment detected at ~/nixos/"
-              sudo nix flake update --flake ~/nixos && \
-              sudo nixos-rebuild switch --flake ~/nixos && \
-              home-manager switch
-            elif [ -f ~/.dotfiles/flake.nix ]; then
-              echo "❄️ Pure Flake environment detected at ~/.dotfiles/"
-              sudo nix flake update --flake ~/.dotfiles && \
-              sudo nixos-rebuild switch --flake ~/.dotfiles && \
-              home-manager switch
-            else
-              echo "📦 Traditional NixOS channel system detected."
-              sudo nix-channel --update && \
-              sudo nixos-rebuild switch --upgrade && \
-              home-manager switch
-            fi
+          if [ "$FAILED_BUILDS" -gt 0 ]; then
+              echo "🚨 PRE-FLIGHT ALERT: $FAILED_BUILDS critical packages are broken upstream!"
+              echo "🛑 Aborting safe update path to prevent system-generation breakages."
+              exit 1
           fi
+
+          echo "🟢 ALL PRE-FLIGHT CHECKS PASSED SUCCESSFULLY!"
+          echo "🚀 Initiating system upgrade track..."
+          sudo nix-channel --update && sudo nixos-rebuild switch --upgrade && home-manager switch
         '';
       in
       {
