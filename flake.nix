@@ -15,7 +15,11 @@
           #!/usr/bin/env bash
           set -o pipefail
 
-          # DYNAMIC CHANNEL DETECTION: Automatically reads the host machine's runtime version track
+          CHECK_ONLY=false
+          for arg in "$@"; do
+            [ "$arg" = "--check" ] && CHECK_ONLY=true
+          done
+
           if [ -f /run/current-system/nixos-version ]; then
             CHANNEL=$(cut -d. -f1,2 /run/current-system/nixos-version)
           elif nix-channel --list | grep -q "nixos-"; then
@@ -67,7 +71,6 @@
 
           for pkg in "''${packages[@]}"; do
             if [ "$ALLOW_UNFREE" = "true" ]; then
-              # skip unfree check — all packages allowed
               :
             elif [[ -n "''${UNFREE_PACKAGES[$pkg]}" ]]; then
               echo "📦 $pkg → Unfree package — assumed OK"
@@ -105,6 +108,9 @@
           if [ "$FAILED" -eq 1 ]; then
             echo "❌ Some packages failed on Hydra. Update aborted!"
             exit 1
+          elif [ "$CHECK_ONLY" = true ]; then
+            echo "✅ All packages green. --check mode: no update performed."
+            exit 0
           else
             echo "✅ All packages green. Safe to update!"
             echo "🚀 Running update..."
