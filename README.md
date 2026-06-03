@@ -1,4 +1,3 @@
-```markdown
 # 🛡️ Hydra Pre-Update Verifier (`safe-update`)
 
  For personal use. This script dynamically audits your installed software profiles, auto-detects your environment's active release track framework, cross-references it with upstream **Hydra build servers**, and aborts your upgrade sequence if any critical package update is broken or unbuilt upstream.
