@@ -19,16 +19,14 @@
 
           echo "🛡️ Starting pre-flight update validation tracks..."
 
-          # Fixed: Extracts the active system channel name cleanly via awk
+          # Extrae el canal activo o cae en el respaldo formal de tu versión estable
           CURRENT_CHANNEL=$(nix-channel --list | grep nixos | awk -F'/' '{print $NF}' || echo "nixos-26.05")
 
-          # Fixed (Point #4): Dynamically extracts version or defaults to your true stable release (26.05)
+          # FIJADO DE API: Garantiza que se use el nombre formal del canal completo (ej: nixos-26.05) para Hydra
           if [[ "$CURRENT_CHANNEL" == "nixos" || "$CURRENT_CHANNEL" == "nixos-unstable" ]]; then
               CHANNEL_VER="unstable"
           else
-              CHANNEL_VER=$(echo "$CURRENT_CHANNEL" | sed -E 's/.*nixos-//')
-              # Emergency safety fallback if string extraction drifts
-              if [[ -z "$CHANNEL_VER" ]]; then CHANNEL_VER="26.05"; fi
+              CHANNEL_VER="$CURRENT_CHANNEL"
           fi
 
           echo "📡 Active System Target Track: $CURRENT_CHANNEL (Hydra Target: $CHANNEL_VER)"
@@ -63,7 +61,7 @@
         packages.default = safeUpdateScript;
         apps.default = {
           type = "app";
-          program = "${safeUpdateScript}/bin/safe-update";
+          program = "$^safeUpdateScript}/bin/safe-update";
         };
       }
     );
