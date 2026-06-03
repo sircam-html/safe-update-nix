@@ -31,12 +31,6 @@ nix run github:sircam-html/safe-update-nix
 ```
 
 *This command dynamically streams the verification shield, adapts its engine to target your local channel track, checks your unique packages, and triggers your upgrade sequence if all indicators report green.*
-
-### 💡 Advanced: Force Local Cache Override
-To bypass downloading an independent tracking copy of Nixpkgs and force the script to use your host machine's already-cached system inputs (saving major network bandwidth), append the override flag:
-```fish
-nix run github:sircam-html/safe-update-nix --override-input nixpkgs nixpkgs
-``` 
     
 ---
 
@@ -45,24 +39,6 @@ nix run github:sircam-html/safe-update-nix --override-input nixpkgs nixpkgs
 * **Zero Maintenance:** Adapts automatically whenever you add, change, or remove software profiles.
 * **Permissive License:** Open-source architecture distributed under the **MIT License**.
     
----
-
-## 🛠️ How It Works Under the Hood
-
-```text
-STEP 1: [Local Audit]
-        └──> Dynamically extracts all system packages & Home Manager profiles.
-
-STEP 2: [Dynamic Sync]
-        └──> Auto-detects host release version and syncs active allowed unfree apps.
-
-STEP 3: [Hydra Query]
-        └──> Checks status for ALL your unique packages on your runtime channel.
-             │
-             ├──> [❌ FAILED] ──> Abort Update! (Protects system state)
-             └──> [✅ GREEN]  ──> Running update... (Executes Upgrade Sequence)
-```
-
 ---
 
 ## 📋 Recommended Deep Cleaning Routine
