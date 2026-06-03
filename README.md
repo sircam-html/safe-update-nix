@@ -1,24 +1,6 @@
 # 🛡️ Hydra Pre-Update Verifier (`safe-update`)
 
- This script dynamically audits your installed software profiles, auto-detects your environment's active release track framework, cross-references it with upstream **Hydra build servers**, and aborts your upgrade sequence if any critical package update is broken or unbuilt upstream.
-
-## 🚀 Key Features & Architectural Enhancements
-
-*   **🌍 Universal Channel & Flake Engine:** Auto-detects your runtime host machine version via `/run/current-system/nixos-version`.
-    *   Works out of the box on stable release tracks (`25.11`, `26.05`) and rolling `unstable` paths.
-    *   Dynamically pivots its deployment engine to natively support modern, pure Flake-driven profiles.
-
-*   **⚡ Instant Profile Auditing ($O(1)$ Complexity):** Swaps heavy network overhead for ultra-fast local parsing.
-    *   Replaced slow, global network tree evaluations (`nix-env -qaP`) with localized link-parsing from `/run/current-system/sw`.
-    *   Reduces profile evaluation and user-package mapping times down to milliseconds instead of minutes.
-
-*   **🔮 Dynamic Unfree Detection:** Completely autonomous environment syncing.
-    *   Leverages `nix-instantiate` to evaluate your live `allowUnfreePredicate` block in real-time.
-    *   Adapts instantly as you scale your software suite without requiring manually maintained exception lists.
-
-*   **🫧 Zero False Positives:** Immaculate terminal visualization output grids.
-    *   Built-in RegEx engine filters out internal declarative environmental noise and shell metadata variables.
-    *   Purges rows like `hm-session-vars.fish`, manual pages, and `safe-update` to query only true applications.
+ Personal use but anyone can use it, this script dynamically audits your installed software profiles, auto-detects your environment's active release track framework, cross-references it with upstream **Hydra build servers**, and aborts your upgrade sequence if any critical package update is broken or unbuilt upstream.
 
 ---
 
