@@ -20,7 +20,13 @@ A high-performance, fully universal update shield for NixOS, Home Manager, and p
     *   Built-in RegEx engine filters out internal declarative environmental noise and shell metadata variables.
     *   Purges rows like `hm-session-vars.fish`, manual pages, and `safe-update` to query only true applications.
 
+---
 
+## 🏆 Core Advantages
+* **Immune System:** Never download a broken rolling package update again.
+* **Zero Maintenance:** Adapts automatically whenever you add, change, or remove software profiles.
+* **Permissive License:** Open-source architecture distributed under the **MIT License**.
+    
 ---
 
 ## 🛠️ How It Works Under the Hood
@@ -79,8 +85,3 @@ nix-store --optimise
 ```
 
 ---
-
-## 🏆 Core Advantages
-* **Immune System:** Never download a broken rolling package update again.
-* **Zero Maintenance:** Adapts automatically whenever you add, change, or remove software profiles.
-* **Permissive License:** Open-source architecture distributed under the **MIT License**.
