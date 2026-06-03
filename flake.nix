@@ -109,22 +109,22 @@
             echo "✅ All packages green. Safe to update!"
             echo "🚀 Running update..."
 
-            if [ -f /etc/nixos/flake.nix ]; then
+            if [ -f /etc/nixos/flake.nix ] && nix flake metadata /etc/nixos/flake.nix &>/dev/null; then
               echo "❄️ Pure Flake environment detected at /etc/nixos/flake.nix"
               sudo nix flake update --flake /etc/nixos && \
               sudo nixos-rebuild switch --flake /etc/nixos && \
               home-manager switch
-            elif [ -f ~/.config/nix/flake.nix ]; then
+            elif [ -f ~/.config/nix/flake.nix ] && nix flake metadata ~/.config/nix/flake.nix &>/dev/null; then
               echo "❄️ Pure Flake environment detected at ~/.config/nix/"
               sudo nix flake update --flake ~/.config/nix && \
               sudo nixos-rebuild switch --flake ~/.config/nix/ && \
               home-manager switch
-            elif [ -f ~/nixos/flake.nix ]; then
+            elif [ -f ~/nixos/flake.nix ] && nix flake metadata ~/nixos/flake.nix &>/dev/null; then
               echo "❄️ Pure Flake environment detected at ~/nixos/"
               sudo nix flake update --flake ~/nixos && \
               sudo nixos-rebuild switch --flake ~/nixos && \
               home-manager switch
-            elif [ -f ~/.dotfiles/flake.nix ]; then
+            elif [ -f ~/.dotfiles/flake.nix ] && nix flake metadata ~/.dotfiles/flake.nix &>/dev/null; then
               echo "❄️ Pure Flake environment detected at ~/.dotfiles/"
               sudo nix flake update --flake ~/.dotfiles && \
               sudo nixos-rebuild switch --flake ~/.dotfiles && \
