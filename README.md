@@ -19,4 +19,3 @@ nix run github:sircam-html/safe-update-nix
 ```
 
 The script adapts its engine to your local channel track, checks your unique packages against Hydra, and triggers the upgrade sequence only if all indicators report green.
-```
