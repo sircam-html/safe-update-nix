@@ -59,41 +59,6 @@ nix run github:sircam-html/safe-update-nix --override-input nixpkgs nixpkgs
 
 ---
 
-## ⚡ One-Word Global Installation (Any Shell)
-
-If you don't want to type long GitHub strings or manage custom dotfile aliases, you can instantly turn `safe-update` into a permanent, native system command. 
-
-### Step 1: Create the launcher script
-Open your terminal and run this single line to drop the portable script directly into your safe user binary space:
-
-```bash
-mkdir -p ~/.local/bin && echo 'exec nix run github:sircam-html/safe-update-nix --refresh "\$@"' > ~/.local/bin/safe-update && chmod +x ~/.local/bin/safe-update
-```
-
-### Step 2: Ensure the path is visible to your Shell
-If your terminal reports `command not found`, your shell simply needs to register your local bin path. Run the command that matches your active shell, then restart your terminal (`exec fish` or `exec zsh`):
-
-* **If you use Fish shell:**
-  ```fish
-  fish_add_path ~/.local/bin/
-  ```
-* **If you use Zsh shell:**
-  ```zsh
-  echo 'export PATH="\(HOME/.local/bin:\)PATH"' >> ~/.zshrc
-  ```
-* **If you use Bash shell:**
-  ```bash
-  echo 'export PATH="\(HOME/.local/bin:\)PATH"' >> ~/.bashrc
-  ```
-
-Once executed, you can fire up your entire live defensive shield from anywhere on your system by typing a single word:
-
-```fish
-safe-update
-```
-
----
-
 ## 📋 Recommended Deep Cleaning Routine
 
 Run these raw sequential commands 24–48 hours after your monthly upgrade to completely delete old system generations and optimize your storage space:
