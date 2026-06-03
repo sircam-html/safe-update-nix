@@ -1,6 +1,6 @@
 # 🛡️ Hydra Pre-Update Verifier (`safe-update`)
 
-A high-performance, fully universal update shield for NixOS and Home Manager. This script dynamically audits your installed software profiles, auto-detects your environment's active release track, cross-references it with upstream **Hydra build servers**, and aborts your upgrade sequence if any critical package update is broken or unbuilt upstream.
+A high-performance, fully universal update shield for NixOS, Home Manager, and pure Flake-driven environments. This script dynamically audits your installed software profiles, auto-detects your environment's active release track framework, cross-references it with upstream **Hydra build servers**, and aborts your upgrade sequence if any critical package update is broken or unbuilt upstream.
 
 ## 🚀 Key Features & Architectural Enhancements
 
