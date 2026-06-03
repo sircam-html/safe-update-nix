@@ -10,23 +10,16 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-
-        safeUpdateScript = pkgs.writeShellScriptBin "safe-update" ''
+      in
+      {
+        packages.default = pkgs.writeShellScriptBin "safe-update" ''
           #!/usr/bin/env bash
           set -euo pipefail
 
           export PATH="${pkgs.hydra-check}/bin:${pkgs.gawk}/bin:$PATH"
 
           echo "🛡️ Starting pre-flight update validation tracks..."
-
-          # Extracts active system channel layout or defaults safely to tracking
           CURRENT_CHANNEL=$(nix-channel --list | grep nixos | awk -F'/' '{print $NF}' || echo "nixos-26.05")
-
-          # Resilient Fallback: If 26.05 builds are still compiling on release week,
-          # we fallback to 'nixpkgs-unstable' matrix to check general binary health!
-          CHANNEL_VER="$CURRENT_CHANNEL"
-          HYDRA_FALLBACK="nixpkgs-unstable"
-
           echo "📡 Active System Target Track: $CURRENT_CHANNEL"
 
           UNFREE_PACKAGES=("google-chrome" "discord" "ferdium" "steam" "wine")
@@ -35,11 +28,11 @@
           FAILED_BUILDS=0
 
           for pkg in "''${UNFREE_PACKAGES[@]}"; do
-              echo "⚙️ Evaluating: $pkg on channel: $CHANNEL_VER..."
-              # Tries checking stable 26.05 first; if it reports empty/broken on launch week, checks nixpkgs-unstable
-              if ! hydra-check "$pkg" --channel "$CHANNEL_VER" > /dev/null 2>&1; then
-                  echo "🔄 Stable mirror indexing; falling back to upstream master check for $pkg..."
-                  if ! hydra-check "$pkg" --channel "$HYDRA_FALLBACK" > /dev/null 2>&1; then
+              echo "⚙️ Evaluating: $pkg..."
+              # Bypasses local channel caching bugs by querying the direct 26.05 release jobsets natively
+              if ! hydra-check "$pkg" --channel "nixos/release-26.05" > /dev/null 2>&1; then
+                  # Final emergency fallback to master tracking to prevent false negatives
+                  if ! hydra-check "$pkg" --channel "nixpkgs-unstable" > /dev/null 2>&1; then
                       echo "❌ WARNING: $pkg build is currently broken or pending on upstream Hydra!"
                       FAILED_BUILDS=$((FAILED_BUILDS + 1))
                   else
