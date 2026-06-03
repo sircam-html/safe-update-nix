@@ -28,14 +28,15 @@
 
           for pkg in "''${UNFREE_PACKAGES[@]}"; do
               echo "⚙️ Evaluating: $pkg..."
-              # Bypasses local channel caching bugs by querying the direct 26.05 release jobsets natively
-              if ! hydra-check "$pkg" --channel "nixos/release-26.05" > /dev/null 2>&1; then
-                  # Final emergency fallback to master tracking to prevent false negatives
+
+              if ! hydra-check "$pkg" --channel "$CURRENT_CHANNEL" > /dev/null 2>&1; then
+                  echo "🔄 Stable mirror indexing (404/Pending); falling back to upstream unstable check for $pkg..."
+
                   if ! hydra-check "$pkg" --channel "nixpkgs-unstable" > /dev/null 2>&1; then
-                      echo "❌ WARNING: $pkg build is currently broken or pending on upstream Hydra!"
+                      echo "❌ WARNING: $pkg build is currently broken or pending on upstream master Hydra!"
                       FAILED_BUILDS=$((FAILED_BUILDS + 1))
                   else
-                      echo "✅ Pass: $pkg binary is verified healthy on upstream master branch."
+                      echo "✅ Pass: $pkg binary verified healthy on upstream master branch."
                   fi
               else
                   echo "✅ Pass: $pkg build is green on stable channel release tracks."
