@@ -61,11 +61,6 @@
             exit 1
           fi
 
-          if ! command -v hydra-check &>/dev/null; then
-            echo "❌ hydra-check not found — install it or skip verification. Aborting."
-            exit 1
-          fi
-
           echo "🔍 Checking ''${#packages[@]} unique packages on nixos-$CHANNEL..."
           echo "─────────────────────────────────────────────────"
 
@@ -88,7 +83,7 @@
                 ;;
             esac
 
-            if ! result=$(hydra-check "$hydra_name" --channel "$CHANNEL" 2>&1); then
+            if ! result=$(${pkgs.hydra-check}/bin/hydra-check "$hydra_name" --channel "$CHANNEL" 2>&1); then
               echo "⚠️  $hydra_name → Not found or query error (Skipped)"
               continue
             fi
